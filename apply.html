@@ -28,7 +28,7 @@
       <div class="step" id="si-5"><div class="step-dot">5</div><div class="step-label">Motivation</div></div>
     </div>
 
-    <form id="form" novalidate>
+    <form id="form" novalidate onsubmit="event.preventDefault(); return false;">
 
       <!-- Step 1 -->
       <div class="section-card visible" id="step-1">
@@ -194,7 +194,7 @@
         <div class="form-nav" style="margin-top:1rem;">
           <button type="button" class="btn btn-ghost" onclick="prev(5)">← Back</button>
           <div class="step-info">Step 5 of 5</div>
-          <button type="button" class="btn btn-orange" id="submit-btn" onclick="submit()">✦ Get My Score</button>
+          <button type="button" class="btn btn-orange" id="submit-btn" onclick="submitForm()">Submit</button>
         </div>
         <p class="msg-error" id="form-err" style="text-align:right;margin-top:0.75rem;"></p>
         <p class="msg-success" id="form-ok">✓ Analysis complete! Check your results below.</p>
@@ -236,12 +236,12 @@
     function next(n) { if (validate(n)) showStep(n+1); }
     function prev(n) { showStep(n-1); }
 
-    async function submit() {
+    async function submitForm() {
       if (!validate(5)) return;
       const btn = document.getElementById('submit-btn');
       const errEl = document.getElementById('form-err');
       const okEl = document.getElementById('form-ok');
-      btn.textContent = '⏳ Analyzing...'; btn.disabled = true;
+      btn.textContent = 'Submitting...'; btn.disabled = true;
       errEl.style.display = 'none';
 
       const data = {};
@@ -255,26 +255,31 @@
           body: JSON.stringify(data)
         });
         if (!res.ok) throw new Error();
-        const result = await res.json();
+        await res.json();
 
-        // Show result on page
-        const lc = (result.label||'warm').toLowerCase();
-        const pct = result.percentage || 0;
         document.getElementById('result-card').style.display = 'block';
         document.getElementById('result-body').innerHTML = `
-          <div class="score-hero ${lc}-hero" style="margin-bottom:0;">
-            <div class="big-pct">${pct}%</div>
-            <div class="hero-label" style="margin-top:0.5rem;"><span class="badge badge-${lc}">${result.label||'—'}</span></div>
-            <p class="score-summary">${result.summary||''}</p>
+          <div style="text-align:center;padding:2rem 1rem;">
+            <div style="font-size:3rem;line-height:1;margin-bottom:1rem;">✓</div>
+            <h2 style="margin-bottom:0.75rem;">Application Received</h2>
+            <p style="color:var(--text-2);font-size:0.95rem;line-height:1.6;max-width:480px;margin:0 auto;">
+              Thank you for submitting your profile. Our immigration consultants will review your application and contact you within 24 hours with the next steps.
+            </p>
           </div>
-          <p style="margin-top:1.5rem;color:var(--text-2);font-size:0.85rem;">Your assessment has been submitted. An immigration consultant will contact you soon.</p>
         `;
-        okEl.style.display = 'block';
-        btn.textContent = '✓ Submitted';
+        // Hide the form steps & nav buttons after success
+        document.querySelectorAll('.section-card').forEach(el => {
+          if (el.id !== 'result-card') el.style.display = 'none';
+        });
+        document.querySelector('.steps').style.display = 'none';
+        okEl.style.display = 'none';
+        btn.textContent = 'Submitted';
+        // Scroll to top so user sees the confirmation
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch {
-        errEl.textContent = '⚠ Could not reach the analysis server. Please try again shortly.';
+        errEl.textContent = '⚠ Could not submit. Please try again shortly.';
         errEl.style.display = 'block';
-        btn.textContent = '✦ Get My Score'; btn.disabled = false;
+        btn.textContent = 'Submit'; btn.disabled = false;
       }
     }
   </script>
