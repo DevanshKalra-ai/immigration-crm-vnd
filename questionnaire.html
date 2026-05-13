@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ImmigratePro — New Applicant</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <span class="logo">ImmigratePro</span>
+    <div class="nav-right">
+      <a href="/dashboard.html" class="nav-link">← Dashboard</a>
+      <a href="#" class="nav-link" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="page-header">
+      <h1>New Applicant Assessment</h1>
+      <p>Complete the form below. Gemini AI will analyze the applicant's eligibility and generate a likelihood score.</p>
+    </div>
+
+    <!-- Step indicators -->
+    <div class="steps" id="steps">
+      <div class="step active" id="step-ind-1">
+        <div class="step-dot">1</div>
+        <div class="step-label">Personal</div>
+      </div>
+      <div class="step" id="step-ind-2">
+        <div class="step-dot">2</div>
+        <div class="step-label">Study</div>
+      </div>
+      <div class="step" id="step-ind-3">
+        <div class="step-dot">3</div>
+        <div class="step-label">Academic</div>
+      </div>
+      <div class="step" id="step-ind-4">
+        <div class="step-dot">4</div>
+        <div class="step-label">Financial</div>
+      </div>
+      <div class="step" id="step-ind-5">
+        <div class="step-dot">5</div>
+        <div class="step-label">Motivation</div>
+      </div>
+    </div>
+
+    <form id="app-form" novalidate>
+
+      <!-- Step 1: Personal -->
+      <div class="section-card visible" id="step-1">
+        <div class="section-header">
+          <div class="section-icon">👤</div>
+          <div>
+            <h3>Personal Information</h3>
+            <p>Basic applicant details</p>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Full Name *</label>
+            <input type="text" name="full_name" placeholder="e.g. Priya Sharma" required />
+          </div>
+          <div class="field">
+            <label>Email Address *</label>
+            <input type="email" name="email" placeholder="priya@email.com" required />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Phone Number</label>
+            <input type="text" name="phone" placeholder="+91 98765 43210" />
+          </div>
+          <div class="field">
+            <label>Age *</label>
+            <input type="number" name="age" placeholder="22" min="15" max="60" required />
+          </div>
+        </div>
+        <div class="field">
+          <label>Nationality / Country of Origin *</label>
+          <input type="text" name="nationality" placeholder="e.g. Indian, Nigerian, Brazilian" required />
+        </div>
+        <div class="form-nav">
+          <div class="step-info">Step 1 of 5</div>
+          <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Study -->
+      <div class="section-card" id="step-2">
+        <div class="section-header">
+          <div class="section-icon">🌍</div>
+          <div>
+            <h3>Study & Destination</h3>
+            <p>Where and what they want to study</p>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Target Country *</label>
+            <select name="target_country" required>
+              <option value="">Select country</option>
+              <option>Canada</option>
+              <option>United Kingdom</option>
+              <option>Australia</option>
+              <option>United States</option>
+              <option>Germany</option>
+              <option>New Zealand</option>
+              <option>Ireland</option>
+              <option>France</option>
+              <option>Netherlands</option>
+              <option>Sweden</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Planned Intake *</label>
+            <select name="planned_start" required>
+              <option value="">Select intake</option>
+              <option>January 2026</option>
+              <option>May 2026</option>
+              <option>September 2026</option>
+              <option>January 2027</option>
+              <option>September 2027</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Degree / Program *</label>
+            <select name="program" required>
+              <option value="">Select program</option>
+              <option>Bachelor's Degree</option>
+              <option>Master's Degree</option>
+              <option>PhD / Doctorate</option>
+              <option>Diploma / Certificate</option>
+              <option>Language Course</option>
+              <option>Foundation Program</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Field of Study *</label>
+            <input type="text" name="field_of_study" placeholder="e.g. Computer Science, MBA, Nursing" required />
+          </div>
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn btn-ghost" onclick="prevStep(2)">← Back</button>
+          <div class="step-info">Step 2 of 5</div>
+          <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Academic -->
+      <div class="section-card" id="step-3">
+        <div class="section-header">
+          <div class="section-icon">📚</div>
+          <div>
+            <h3>Academic Background</h3>
+            <p>Education and language proficiency</p>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Highest Education Level *</label>
+            <select name="education_level" required>
+              <option value="">Select level</option>
+              <option>High School (Grade 10)</option>
+              <option>High School (Grade 12 / A-Levels)</option>
+              <option>Bachelor's Degree (Ongoing)</option>
+              <option>Bachelor's Degree (Completed)</option>
+              <option>Master's Degree (Completed)</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>English Proficiency *</label>
+            <select name="english_proficiency" required>
+              <option value="">Select level</option>
+              <option>No formal test</option>
+              <option>Basic English only</option>
+              <option>IELTS below 6.0</option>
+              <option>IELTS 6.0 – 6.5</option>
+              <option>IELTS 7.0 – 7.5</option>
+              <option>IELTS 8.0+</option>
+              <option>TOEFL 80–100</option>
+              <option>TOEFL 100+</option>
+              <option>Native English speaker</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn btn-ghost" onclick="prevStep(3)">← Back</button>
+          <div class="step-info">Step 3 of 5</div>
+          <button type="button" class="btn btn-primary" onclick="nextStep(3)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Financial -->
+      <div class="section-card" id="step-4">
+        <div class="section-header">
+          <div class="section-icon">💰</div>
+          <div>
+            <h3>Financial & Background</h3>
+            <p>Funding and visa history</p>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Annual Budget (USD) *</label>
+            <select name="budget" required>
+              <option value="">Select budget</option>
+              <option>Less than $10,000</option>
+              <option>$10,000 – $20,000</option>
+              <option>$20,000 – $35,000</option>
+              <option>$35,000 – $50,000</option>
+              <option>More than $50,000</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Financial Sponsorship *</label>
+            <select name="has_sponsorship" required>
+              <option value="">Select</option>
+              <option>Yes – Family sponsor</option>
+              <option>Yes – Government scholarship</option>
+              <option>Yes – University scholarship</option>
+              <option>No – Self-funded</option>
+              <option>No – Still arranging</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Visa Rejected Before? *</label>
+            <select name="visa_rejected" required>
+              <option value="">Select</option>
+              <option>No – First application</option>
+              <option>Yes – Once, resolved</option>
+              <option>Yes – Multiple times</option>
+              <option>Yes – Still under ban</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Relatives in Target Country?</label>
+            <select name="has_relatives">
+              <option value="">Select</option>
+              <option>Yes – Close family</option>
+              <option>Yes – Friends / distant relatives</option>
+              <option>No</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn btn-ghost" onclick="prevStep(4)">← Back</button>
+          <div class="step-info">Step 4 of 5</div>
+          <button type="button" class="btn btn-primary" onclick="nextStep(4)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 5: Motivation + Submit -->
+      <div class="section-card" id="step-5">
+        <div class="section-header">
+          <div class="section-icon">✍️</div>
+          <div>
+            <h3>Motivation & Intent</h3>
+            <p>The AI uses this to assess commitment</p>
+          </div>
+        </div>
+        <div class="field">
+          <label>Why does this applicant want to study abroad? What are their career goals? *</label>
+          <textarea name="motivation" rows="6" required
+            placeholder="Describe why this student wants to study in their chosen country, what career they're pursuing, why this specific program, and any other relevant context. The more specific, the more accurate the AI analysis."></textarea>
+        </div>
+        <div class="form-nav" style="margin-top:1rem;">
+          <button type="button" class="btn btn-ghost" onclick="prevStep(5)">← Back</button>
+          <div class="step-info">Step 5 of 5</div>
+          <button type="button" class="btn btn-primary" id="submit-btn" onclick="submitForm()">
+            ✦ Analyze with AI
+          </button>
+        </div>
+        <p class="msg-error" id="form-error" style="text-align:right;margin-top:0.75rem;"></p>
+        <p class="msg-success" id="form-success">✓ Analysis complete! Redirecting to dashboard...</p>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+    if (!localStorage.getItem('crm_auth')) window.location.href = '/';
+    function logout() { localStorage.removeItem('crm_auth'); window.location.href = '/'; }
+
+    let currentStep = 1;
+
+    function showStep(n) {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById('step-' + i).classList.toggle('visible', i === n);
+        const ind = document.getElementById('step-ind-' + i);
+        ind.classList.remove('active', 'done');
+        if (i === n) ind.classList.add('active');
+        else if (i < n) ind.classList.add('done');
+      }
+      currentStep = n;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function validateStep(n) {
+      const card = document.getElementById('step-' + n);
+      const required = card.querySelectorAll('[required]');
+      let valid = true;
+      required.forEach(el => {
+        if (!el.value.trim()) { el.style.borderColor = 'var(--cold)'; valid = false; }
+        else el.style.borderColor = '';
+      });
+      if (!valid) {
+        const first = card.querySelector('[required]:not([value])') || card.querySelector('[required]');
+        if (first) first.focus();
+      }
+      return valid;
+    }
+
+    function nextStep(n) { if (validateStep(n)) showStep(n + 1); }
+    function prevStep(n) { showStep(n - 1); }
+
+    async function submitForm() {
+      if (!validateStep(5)) return;
+      const btn = document.getElementById('submit-btn');
+      const errEl = document.getElementById('form-error');
+      const sucEl = document.getElementById('form-success');
+      btn.textContent = '⏳ Analyzing...'; btn.disabled = true;
+      errEl.style.display = 'none';
+
+      const data = {};
+      new FormData(document.getElementById('app-form')).forEach((v, k) => data[k] = v);
+
+      try {
+        const res = await fetch('https://honor-page-pamela-convenience.trycloudflare.com/webhook/immigration', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error('n8n error');
+        sucEl.style.display = 'block';
+        setTimeout(() => window.location.href = '/dashboard.html', 2200);
+      } catch {
+        errEl.textContent = '⚠ Could not reach n8n (port 5678). Make sure the workflow is active.';
+        errEl.style.display = 'block';
+        btn.textContent = '✦ Analyze with AI'; btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

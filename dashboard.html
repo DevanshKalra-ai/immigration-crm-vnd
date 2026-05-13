@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ImmigratePro — Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">Immigrate<span>Pro</span></div>
+    <div class="nav-right">
+      <button class="notif-btn" onclick="openNotifications()" title="Notifications">
+        🔔
+        <div class="notif-dot" id="notif-dot"></div>
+      </button>
+      <a href="#" class="nav-link" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div class="toast-stack" id="toast-stack"></div>
+
+  <div class="dashboard-wrap">
+
+    <div class="dash-header">
+      <div>
+        <h1>Applicant Dashboard</h1>
+        <p>AI-analyzed immigration prospects · auto-refreshes every 10s</p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-icon">🗂</div>
+        <div class="stat-val" id="s-total">—</div>
+        <div class="stat-lbl">Total Applicants</div>
+      </div>
+      <div class="stat-card hot-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-val" id="s-hot" style="color:var(--hot)">—</div>
+        <div class="stat-lbl">Hot Leads</div>
+      </div>
+      <div class="stat-card warm-card">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-val" id="s-warm" style="color:var(--warm)">—</div>
+        <div class="stat-lbl">Warm Leads</div>
+      </div>
+      <div class="stat-card cold-card">
+        <div class="stat-icon">❄️</div>
+        <div class="stat-val" id="s-cold" style="color:var(--cold)">—</div>
+        <div class="stat-lbl">Cold Leads</div>
+      </div>
+      <div class="stat-card avg-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-val" id="s-avg">—</div>
+        <div class="stat-lbl">Avg. Score</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="search" placeholder="Search name, email, country..." oninput="renderTable()" />
+        </div>
+        <select class="filter-sel" id="f-label" onchange="renderTable()">
+          <option value="">All Labels</option>
+          <option>Hot</option>
+          <option>Warm</option>
+          <option>Cold</option>
+        </select>
+        <select class="filter-sel" id="f-country" onchange="renderTable()">
+          <option value="">All Countries</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sort('full_name')">Applicant <span id="si-full_name"></span></th>
+              <th onclick="sort('target_country')">Destination <span id="si-target_country"></span></th>
+              <th onclick="sort('program')">Program <span id="si-program"></span></th>
+              <th onclick="sort('ai_percentage')">AI Score <span id="si-ai_percentage"></span></th>
+              <th onclick="sort('ai_label')">Label <span id="si-ai_label"></span></th>
+              <th onclick="sort('created_at')">Submitted <span id="si-created_at"></span></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⏳</div><p>Loading applicants...</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="overlay" id="modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modal-title">Applicant Details</h3>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    if (!localStorage.getItem('crm_auth')) window.location.href = '/admin-login.html';
+    function logout() { localStorage.removeItem('crm_auth'); window.location.href = '/admin-login.html'; }
+
+    let allData = [], sortKey = 'created_at', sortDir = -1;
+    let seenIds = new Set();
+
+    async function load() {
+      try {
+        const r = await fetch('/api/applicants');
+        allData = await r.json();
+        updateStats(); populateCountries(); renderTable();
+      } catch(e) {}
+    }
+
+    function updateStats() {
+      document.getElementById('s-total').textContent = allData.length;
+      document.getElementById('s-hot').textContent = allData.filter(r=>r.ai_label==='Hot').length;
+      document.getElementById('s-warm').textContent = allData.filter(r=>r.ai_label==='Warm').length;
+      document.getElementById('s-cold').textContent = allData.filter(r=>r.ai_label==='Cold').length;
+      const avg = allData.length ? Math.round(allData.reduce((s,r)=>s+(r.ai_percentage||0),0)/allData.length) : 0;
+      document.getElementById('s-avg').textContent = avg+'%';
+    }
+
+    function populateCountries() {
+      const sel = document.getElementById('f-country');
+      const cur = sel.value;
+      const countries = [...new Set(allData.map(r=>r.target_country).filter(Boolean))].sort();
+      sel.innerHTML = '<option value="">All Countries</option>' + countries.map(c=>`<option${c===cur?' selected':''}>${c}</option>`).join('');
+    }
+
+    function renderTable() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const fl = document.getElementById('f-label').value;
+      const fc = document.getElementById('f-country').value;
+
+      let rows = allData.filter(r => {
+        const s = !q || [r.full_name,r.email,r.target_country,r.nationality,r.field_of_study].some(v=>v&&v.toLowerCase().includes(q));
+        return s && (!fl||r.ai_label===fl) && (!fc||r.target_country===fc);
+      });
+
+      rows.sort((a,b) => {
+        const av=a[sortKey]??'', bv=b[sortKey]??'';
+        return av<bv?-sortDir:av>bv?sortDir:0;
+      });
+
+      document.querySelectorAll('thead th span').forEach(s=>s.textContent='');
+      const si = document.getElementById('si-'+sortKey);
+      if(si) si.textContent = sortDir===1?' ↑':' ↓';
+      document.querySelectorAll('thead th').forEach(th=>{
+        th.classList.toggle('sorted', th.querySelector('span')?.id==='si-'+sortKey && si);
+      });
+
+      const tbody = document.getElementById('tbody');
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🔍</div><p>No applicants match your filters.</p></div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => {
+        const lc = (r.ai_label||'').toLowerCase();
+        const pct = r.ai_percentage||0;
+        return `<tr onclick="openModal(${r.id})">
+          <td>
+            <div class="applicant-name">${esc(r.full_name||'—')}</div>
+            <div class="applicant-email">${esc(r.email||'')}</div>
+          </td>
+          <td style="color:var(--text-2);font-size:0.875rem;">${esc(r.target_country||'—')}</td>
+          <td style="color:var(--text-2);font-size:0.875rem;">${esc(r.program||'—')}</td>
+          <td>
+            <div class="score-cell">
+              <span class="score-num">${pct}%</span>
+              <div class="score-bar-bg"><div class="score-bar bar-${lc}" style="width:${pct}%"></div></div>
+            </div>
+          </td>
+          <td><span class="badge badge-${lc}">${r.ai_label||'—'}</span></td>
+          <td class="date-cell">${fmtDate(r.created_at)}</td>
+          <td><button class="action-btn" onclick="event.stopPropagation();del(${r.id})" title="Delete">🗑</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function sort(key) {
+      if(sortKey===key) sortDir*=-1; else { sortKey=key; sortDir=-1; }
+      renderTable();
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function fmtDate(dt) {
+      if(!dt) return '—';
+      return new Date(dt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    }
+
+    function openModal(id) {
+      const r = allData.find(a=>a.id===id); if(!r) return;
+      const lc=(r.ai_label||'').toLowerCase();
+      const pct=r.ai_percentage||0;
+      let factors=[];
+      try{ factors=JSON.parse(r.ai_key_factors||'[]'); }catch(e){}
+
+      document.getElementById('modal-title').textContent=r.full_name||'Applicant';
+      document.getElementById('modal-body').innerHTML=`
+        <div class="score-hero ${lc}-hero">
+          <div class="big-pct">${pct}%</div>
+          <div class="hero-label"><span class="badge badge-${lc}">${r.ai_label||'—'}</span></div>
+          <p class="score-summary">${esc(r.ai_summary||'')}</p>
+          ${factors.length?`<div class="key-factors">
+            <div class="key-factors-title">Key Factors</div>
+            ${factors.map(f=>`<div class="factor-item">${esc(f)}</div>`).join('')}
+          </div>`:''}
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-section-title">Personal</div>
+          ${dr('Email', r.email)} ${dr('Phone', r.phone)} ${dr('Age', r.age)} ${dr('Nationality', r.nationality)}
+          <div class="detail-section-title">Study Plan</div>
+          ${dr('Target Country', r.target_country)} ${dr('Program', r.program)}
+          ${dr('Field of Study', r.field_of_study)} ${dr('Planned Start', r.planned_start)}
+          <div class="detail-section-title">Academic</div>
+          ${dr('Education Level', r.education_level)} ${dr('English Proficiency', r.english_proficiency)}
+          <div class="detail-section-title">Financial</div>
+          ${dr('Budget', r.budget)} ${dr('Sponsorship', r.has_sponsorship)}
+          ${dr('Visa Rejected Before', r.visa_rejected)} ${dr('Relatives in Target Country', r.has_relatives)}
+          <div class="detail-section-title">Motivation</div>
+          <div class="motivation-box">${esc(r.motivation||'—')}</div>
+          <div style="margin-top:0.75rem;color:var(--text-3);font-size:0.75rem;">Submitted: ${fmtDate(r.created_at)}</div>
+        </div>`;
+      document.getElementById('modal').classList.add('open');
+    }
+
+    function dr(l,v) {
+      return `<div class="detail-row"><span class="dl">${l}</span><span class="dv">${esc(v||'—')}</span></div>`;
+    }
+
+    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+    async function del(id) {
+      if(!confirm('Delete this applicant record?')) return;
+      await fetch('/api/applicants/'+id,{method:'DELETE'});
+      await load();
+    }
+
+    // Notifications
+    async function checkNotifs() {
+      try {
+        const r=await fetch('/api/notifications');
+        const d=await r.json();
+        const dot=document.getElementById('notif-dot');
+        if(d.count>0) {
+          dot.style.display='flex'; dot.textContent=d.count;
+          d.recent.forEach(n=>{
+            if(!seenIds.has(n.id)) { seenIds.add(n.id); toast(n); }
+          });
+        } else dot.style.display='none';
+      } catch(e){}
+    }
+
+    function toast(n) {
+      const lc=(n.ai_label||'').toLowerCase();
+      const el=document.createElement('div');
+      el.className=`toast ${lc}`;
+      el.innerHTML=`<div class="toast-top">
+        <span class="badge badge-${lc} toast-badge">${n.ai_label}</span>
+        <span class="toast-name">${esc(n.full_name)}</span>
+      </div>
+      <div class="toast-sub">Likelihood score: ${n.ai_percentage}%</div>`;
+      document.getElementById('toast-stack').appendChild(el);
+      setTimeout(()=>el.remove(),5000);
+    }
+
+    async function openNotifications() {
+      await fetch('/api/notifications/read',{method:'POST'});
+      document.getElementById('notif-dot').style.display='none';
+      await load();
+    }
+
+    load(); checkNotifs();
+    setInterval(()=>{ load(); checkNotifs(); }, 10000);
+  </script>
+</body>
+</html>

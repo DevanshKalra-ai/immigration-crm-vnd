@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>ImmigratePro — Admin Login</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">Immigrate<span>Pro</span></div>
+      <div class="auth-subtitle">Immigration Management System</div>
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <span class="auth-role-badge">🛡️ Admin Access</span>
+      </div>
+
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="username" placeholder="admin" autocomplete="username"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter') login()"/>
+      </div>
+
+      <p class="msg-error" id="err">⚠ Invalid username or password.</p>
+
+      <button class="btn btn-orange btn-full" id="login-btn" onclick="login()" style="margin-top:0.5rem;">
+        Sign In to Dashboard →
+      </button>
+
+      <div class="auth-hint">
+        Default: <code>admin</code> / <code>admin123</code>
+      </div>
+
+      <a href="/" class="auth-back">← Back to home</a>
+    </div>
+  </div>
+
+  <script>
+    if (localStorage.getItem('crm_auth')) window.location.href = '/dashboard.html';
+
+    async function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const err = document.getElementById('err');
+      const btn = document.getElementById('login-btn');
+      err.style.display = 'none';
+      btn.textContent = 'Signing in...'; btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('crm_auth', data.token);
+          window.location.href = '/dashboard.html';
+        } else {
+          err.style.display = 'block';
+          btn.textContent = 'Sign In to Dashboard →'; btn.disabled = false;
+        }
+      } catch {
+        err.textContent = '⚠ Cannot reach server on port 3000.';
+        err.style.display = 'block';
+        btn.textContent = 'Sign In to Dashboard →'; btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
