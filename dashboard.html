@@ -118,7 +118,7 @@
 
     async function load() {
       try {
-        const r = await fetch('/api/applicants');
+        const r = await fetch('/api/applicants', { headers: { Authorization: 'Bearer ' + localStorage.getItem('crm_auth') } });
         allData = await r.json();
         updateStats(); populateCountries(); renderTable();
       } catch(e) {}
@@ -250,14 +250,14 @@
 
     async function del(id) {
       if(!confirm('Delete this applicant record?')) return;
-      await fetch('/api/applicants/'+id,{method:'DELETE'});
+      await fetch('/api/applicants/'+id,{method:'DELETE', headers: { Authorization: 'Bearer ' + localStorage.getItem('crm_auth') } });
       await load();
     }
 
     // Notifications
     async function checkNotifs() {
       try {
-        const r=await fetch('/api/notifications');
+        const r=await fetch('/api/notifications', { headers: { Authorization: 'Bearer ' + localStorage.getItem('crm_auth') } });
         const d=await r.json();
         const dot=document.getElementById('notif-dot');
         if(d.count>0) {
@@ -283,7 +283,7 @@
     }
 
     async function openNotifications() {
-      await fetch('/api/notifications/read',{method:'POST'});
+      await fetch('/api/notifications/read',{method:'POST', headers: { Authorization: 'Bearer ' + localStorage.getItem('crm_auth') } });
       document.getElementById('notif-dot').style.display='none';
       await load();
     }
