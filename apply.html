@@ -10,27 +10,9 @@
   <nav class="navbar">
     <div class="logo">Immigrate<span>Pro</span></div>
     <div class="nav-right">
-      <a href="javascript:void(0)" class="nav-link" onclick="configWebhook()" id="wh-status" style="font-size:0.8rem;">⚙ Webhook</a>
       <a href="/" class="nav-link">← Home</a>
     </div>
   </nav>
-  <script>
-    function configWebhook() {
-      const current = localStorage.getItem('crm_webhook_url') || '';
-      const v = prompt('n8n webhook URL\n(Production URL from Receive CRM Webhook node):', current);
-      if (v !== null) {
-        if (v.trim() === '') { localStorage.removeItem('crm_webhook_url'); }
-        else { localStorage.setItem('crm_webhook_url', v.trim()); }
-        updateWhStatus();
-      }
-    }
-    function updateWhStatus() {
-      const u = localStorage.getItem('crm_webhook_url');
-      const el = document.getElementById('wh-status');
-      if (el) el.textContent = u ? '⚙ Webhook ✓' : '⚙ Set Webhook';
-    }
-    document.addEventListener('DOMContentLoaded', updateWhStatus);
-  </script>
 
   <div class="page-wrap">
     <div class="page-header">
@@ -265,16 +247,7 @@
       const data = {};
       new FormData(document.getElementById('form')).forEach((v,k) => data[k]=v);
 
-      let webhookUrl = localStorage.getItem('crm_webhook_url') || '';
-      if (!webhookUrl) {
-        webhookUrl = prompt('Paste your n8n webhook URL\n(from the "Receive CRM Webhook" node in your n8n workflow)\n\nIt looks like:\nhttps://<workspace>.app.n8n.cloud/webhook/immigration', '');
-        if (!webhookUrl) {
-          btn.textContent = 'Submit & Get AI Assessment'; btn.disabled = false;
-          errEl.textContent = 'Webhook URL required to submit.'; errEl.style.display = 'block';
-          return;
-        }
-        localStorage.setItem('crm_webhook_url', webhookUrl.trim());
-      }
+      const webhookUrl = 'https://devanshkalra248.app.n8n.cloud/webhook/immigration';
 
       try {
         const res = await fetch(webhookUrl, {

@@ -45,11 +45,11 @@
   <h1>Immigration CRM — Webhook Tester</h1>
   <p class="lede">Test your n8n workflow from any browser. No login, no install.</p>
 
-  <label>1. n8n Webhook URL</label>
-  <input id="url" placeholder="https://your-workspace.app.n8n.cloud/webhook/immigration" autocomplete="off">
-  <div class="small">Copy this from the Receive CRM Webhook node in your imported workflow (Production URL).</div>
+  <label>Endpoint</label>
+  <input id="url" value="https://devanshkalra248.app.n8n.cloud/webhook/immigration" autocomplete="off">
+  <div class="small">Hardcoded to your n8n Cloud workflow. Edit only if you change workspaces.</div>
 
-  <label>2. Pick a sample profile or edit below</label>
+  <label>Pick a sample profile or edit below</label>
   <div class="btns">
     <button class="hot" onclick="loadSample('hot')">🔥 Hot lead</button>
     <button class="warm" onclick="loadSample('warm')">☕ Warm lead</button>
@@ -122,10 +122,7 @@ function loadSample(k) {
   document.getElementById('payload').value = JSON.stringify(SAMPLES[k], null, 2);
 }
 
-// Persist URL between visits
 const urlInput = document.getElementById('url');
-urlInput.value = localStorage.getItem('webhook_url') || '';
-urlInput.addEventListener('input', () => localStorage.setItem('webhook_url', urlInput.value));
 
 // Load hot sample by default
 loadSample('hot');
