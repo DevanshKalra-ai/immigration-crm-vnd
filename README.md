@@ -2,7 +2,7 @@
 
 Plug-and-play n8n workflow that scores student-visa applicants as Hot / Warm / Cold using Google Gemini with strict hard-cap logic.
 
-**Import URL:** https://devanshkalra-ai.github.io/immigration-crm-vnd/workflow.json
+**Import URL:** <get the workflow JSON from your local Desktop folder>
 **Live demo form:** https://devanshkalra-ai.github.io/immigration-crm-vnd/apply.html
 
 ---
@@ -10,12 +10,12 @@ Plug-and-play n8n workflow that scores student-visa applicants as Hot / Warm / C
 ## Import into n8n (2 minutes)
 
 **Method A — From file**
-1. Save [`workflow.json`](./workflow.json) locally
+1. Get workflow JSON from your local file (not in this repo for security)
 2. n8n web → top-right menu → **Import from File** → select the file
 
 **Method B — From URL** (n8n Desktop / self-hosted)
 1. n8n web → top-right menu → **Import from URL**
-2. Paste: `https://devanshkalra-ai.github.io/immigration-crm-vnd/workflow.json`
+2. Paste: `<get the workflow JSON from your local Desktop folder>`
 
 ## Setup (one-time)
 
