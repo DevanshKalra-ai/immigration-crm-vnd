@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CRM Webhook Tester</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,sans-serif;background:#0d0b0a;color:#eaeaea;padding:16px;line-height:1.5}
+  .wrap{max-width:680px;margin:0 auto}
+  h1{font-size:20px;margin-bottom:4px;color:#f97316}
+  p.lede{font-size:14px;color:#999;margin-bottom:20px}
+  label{display:block;font-size:12px;color:#999;margin:14px 0 6px;text-transform:uppercase;letter-spacing:0.5px}
+  input,textarea,select,button{width:100%;background:#1a1715;color:#eaeaea;border:1px solid #333;border-radius:8px;padding:11px 14px;font-family:inherit;font-size:14px}
+  textarea{font-family:ui-monospace,Menlo,monospace;font-size:12px;min-height:280px;resize:vertical}
+  button{cursor:pointer;font-weight:600;margin-top:14px;border:none;background:#f97316;color:#000;padding:14px}
+  button:hover{background:#fb923c}
+  button:disabled{opacity:0.5;cursor:not-allowed}
+  .btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+  .btns button{margin:0;padding:10px;font-size:12px;background:#262220;color:#eaeaea}
+  .btns button.hot{border:1px solid #22c55e}
+  .btns button.warm{border:1px solid #f97316}
+  .btns button.cold{border:1px solid #ef4444}
+  .resp{margin-top:20px;padding:14px;background:#1a1715;border-radius:8px;border-left:4px solid #333;display:none}
+  .resp.ok{border-left-color:#22c55e}
+  .resp.err{border-left-color:#ef4444}
+  .resp h3{font-size:13px;margin-bottom:8px;color:#999;text-transform:uppercase;letter-spacing:0.5px}
+  .resp pre{font-family:ui-monospace,Menlo,monospace;font-size:12px;white-space:pre-wrap;word-break:break-word;color:#eaeaea}
+  .score{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #333}
+  .badge{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600}
+  .badge.Hot{background:#22c55e;color:#000}
+  .badge.Warm{background:#f97316;color:#000}
+  .badge.Cold{background:#ef4444;color:#fff}
+  .pct{font-size:28px;font-weight:700;color:#f97316}
+  .small{font-size:12px;color:#999;margin-top:6px}
+  ul{padding-left:18px;margin-top:6px}
+  li{font-size:13px;margin:3px 0}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;font-size:12px}
+  .meta>div{background:#262220;padding:8px;border-radius:6px}
+  .meta strong{color:#f97316;display:block;font-size:11px;text-transform:uppercase;margin-bottom:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Immigration CRM — Webhook Tester</h1>
+  <p class="lede">Test your n8n workflow from any browser. No login, no install.</p>
+
+  <label>1. n8n Webhook URL</label>
+  <input id="url" placeholder="https://your-workspace.app.n8n.cloud/webhook/immigration" autocomplete="off">
+  <div class="small">Copy this from the Receive CRM Webhook node in your imported workflow (Production URL).</div>
+
+  <label>2. Pick a sample profile or edit below</label>
+  <div class="btns">
+    <button class="hot" onclick="loadSample('hot')">🔥 Hot lead</button>
+    <button class="warm" onclick="loadSample('warm')">☕ Warm lead</button>
+    <button class="cold" onclick="loadSample('cold')">❄ Cold lead</button>
+  </div>
+
+  <label>3. Payload</label>
+  <textarea id="payload" spellcheck="false"></textarea>
+
+  <button id="send" onclick="send()">Send to Webhook</button>
+
+  <div id="resp" class="resp"></div>
+</div>
+
+<script>
+const SAMPLES = {
+  hot: {
+    full_name: "Aarav Sharma",
+    email: "aarav@example.com",
+    phone: "+91-9876543210",
+    age: 23,
+    nationality: "Indian",
+    target_country: "Canada",
+    program: "Masters",
+    field_of_study: "Computer Science",
+    education_level: "B.Tech CSE 8.5 CGPA",
+    english_proficiency: "IELTS 7.5",
+    budget: "$50000",
+    has_sponsorship: "Full Vanier scholarship covering tuition and stipend",
+    visa_rejected: "No",
+    has_relatives: "No",
+    planned_start: "September 2026",
+    motivation: "Pursue Masters in Machine Learning at University of Toronto under Prof Bahdanau focusing on attention mechanisms and efficient transformers, with goal of joining a research lab post-graduation before returning to India to launch an AI infrastructure startup serving emerging markets"
+  },
+  warm: {
+    full_name: "Priya Patel",
+    email: "priya@example.com",
+    age: 22,
+    nationality: "Indian",
+    target_country: "Australia",
+    program: "Masters",
+    field_of_study: "Marketing",
+    education_level: "Bachelors Commerce 65%",
+    english_proficiency: "IELTS 6.5",
+    budget: "$38000",
+    has_sponsorship: "Parents covering 70%, education loan 30%",
+    visa_rejected: "No",
+    has_relatives: "Cousin in Sydney",
+    planned_start: "Feb 2026",
+    motivation: "Study marketing at Monash University to specialize in digital brand strategy, work in Australian retail tech for 2 years before returning to India to launch a marketing consultancy"
+  },
+  cold: {
+    full_name: "Test Applicant",
+    age: 19,
+    nationality: "Nigerian",
+    target_country: "UK",
+    program: "Bachelors",
+    field_of_study: "Business",
+    education_level: "Grade 10 only",
+    english_proficiency: "None",
+    budget: "$3000",
+    has_sponsorship: "No",
+    visa_rejected: "Yes - twice",
+    has_relatives: "No",
+    motivation: "want better life"
+  }
+};
+
+function loadSample(k) {
+  document.getElementById('payload').value = JSON.stringify(SAMPLES[k], null, 2);
+}
+
+// Persist URL between visits
+const urlInput = document.getElementById('url');
+urlInput.value = localStorage.getItem('webhook_url') || '';
+urlInput.addEventListener('input', () => localStorage.setItem('webhook_url', urlInput.value));
+
+// Load hot sample by default
+loadSample('hot');
+
+async function send() {
+  const url = urlInput.value.trim();
+  const respEl = document.getElementById('resp');
+  const btn = document.getElementById('send');
+
+  if (!url) {
+    respEl.className = 'resp err';
+    respEl.style.display = 'block';
+    respEl.innerHTML = '<h3>Error</h3><pre>Paste your webhook URL first.</pre>';
+    return;
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(document.getElementById('payload').value);
+  } catch (e) {
+    respEl.className = 'resp err';
+    respEl.style.display = 'block';
+    respEl.innerHTML = '<h3>Invalid JSON</h3><pre>' + e.message + '</pre>';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Scoring...';
+  respEl.style.display = 'block';
+  respEl.className = 'resp';
+  respEl.innerHTML = '<h3>Waiting for AI...</h3><pre>This usually takes 3-8 seconds.</pre>';
+
+  const t0 = Date.now();
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    const text = await r.text();
+    let data;
+    try { data = JSON.parse(text); } catch (e) { data = { raw: text }; }
+
+    if (r.ok && data.label) {
+      respEl.className = 'resp ok';
+      const factors = (data.key_factors || []).map(f => '<li>' + escapeHtml(f) + '</li>').join('');
+      respEl.innerHTML = `
+        <h3>AI Result — HTTP ${r.status} in ${elapsed}s</h3>
+        <div class="score">
+          <span class="pct">${data.percentage}%</span>
+          <span class="badge ${data.label}">${data.label}</span>
+        </div>
+        <div class="meta">
+          <div><strong>Priority</strong>${data.priority || '—'}</div>
+          <div><strong>SLA</strong>${data.followup_sla_hours ? data.followup_sla_hours + 'h' : '—'}</div>
+          <div><strong>Team</strong>${escapeHtml(data.assigned_team || '—')}</div>
+          <div><strong>Caps applied</strong>${data.caps_applied ?? 0}</div>
+        </div>
+        <div style="margin-top:10px">${escapeHtml(data.summary || '')}</div>
+        <h3 style="margin-top:14px">Key factors</h3>
+        <ul>${factors}</ul>
+        <h3 style="margin-top:14px">Raw response</h3>
+        <pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>
+      `;
+    } else {
+      respEl.className = 'resp err';
+      respEl.innerHTML = `<h3>HTTP ${r.status} (${elapsed}s)</h3><pre>${escapeHtml(text)}</pre>`;
+    }
+  } catch (e) {
+    respEl.className = 'resp err';
+    respEl.innerHTML = `<h3>Network error</h3><pre>${escapeHtml(e.message)}\n\nCommon causes:\n- Workflow not activated in n8n\n- Wrong URL\n- CORS blocked (rare for n8n)</pre>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send to Webhook';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
